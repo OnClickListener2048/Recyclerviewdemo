@@ -1,6 +1,8 @@
 package com.example.recyclerviewdemo;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,12 +18,22 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.idlefish.flutterboost.FlutterBoost;
+import com.idlefish.flutterboost.containers.FlutterBoostActivity;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
+import io.flutter.embedding.android.FlutterActivity;
+import io.flutter.embedding.android.FlutterActivityLaunchConfigs;
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel;
+
 public class MainActivity extends AppCompatActivity {
+
+    MethodChannel methodChannel = new MethodChannel(FlutterBoost.instance().getEngine().getDartExecutor(), "com.tiens.vshare.appMethodChannel");
 
     public static final String url = "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Finews.gtimg.com%2Fnewsapp_bt%2F0%2F13915280964%2F641&refer=http%3A%2F%2Finews.gtimg.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1632499497&t=95414b5e31506703dc00f6ae876bb314";
     private MainAdapter mainAdapter;
@@ -41,6 +53,15 @@ public class MainActivity extends AppCompatActivity {
 
 
         mainAdapter.notifyDataSetChanged();
+
+        methodChannel.setMethodCallHandler(new MethodChannel.MethodCallHandler() {
+            @Override
+            public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
+                if (TextUtils.equals(call.method,"getTranslation")) {
+                    result.success("onMethodCall");
+                }
+            }
+        });
     }
 
     private List<User> genernateData() {
@@ -53,7 +74,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void notifyDataSetChange(View view) {
-        mainAdapter.notifyDataSetChanged();
+        Intent intent = new FlutterBoostActivity.CachedEngineIntentBuilder(FlutterBoostActivity.class)
+                .backgroundMode(FlutterActivityLaunchConfigs.BackgroundMode.opaque)
+                .destroyEngineWithActivity(false)
+                .url("/")
+                .urlParams(new HashMap<>())
+                .build(this);
+        startActivityForResult(intent, 111);
     }
 
     public static class MainAdapter extends RecyclerView.Adapter<VH>{
